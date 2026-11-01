@@ -34,7 +34,7 @@ export default function Sidebar({ activeView, onNavigate }) {
     ">
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-2 md:px-3 mb-0 md:mb-6 shrink-0">
-        <img src="/logo.svg" alt="Outflow" className="w-7 h-7 rounded-lg object-contain shrink-0" />
+        <img src="./logo.svg" alt="Outflow" className="w-7 h-7 rounded-lg object-contain shrink-0" />
         <span className="text-text-main font-bold text-[15px] tracking-wide uppercase hidden sm:inline">
           Outflow
         </span>
