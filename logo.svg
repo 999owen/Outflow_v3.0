@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%" fill="none">
+  <defs>
+    <!-- Dark slate canvas background -->
+    <linearGradient id="schottky-bg" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#141E30" />
+      <stop offset="100%" stop-color="#0B111D" />
+    </linearGradient>
+
+    <!-- Signal cyan to electric blue gradient -->
+    <linearGradient id="diode-gradient" x1="24" y1="64" x2="104" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#2563EB" />
+    </linearGradient>
+
+    <!-- High-energy cathode accent -->
+    <linearGradient id="cathode-accent" x1="72" y1="36" x2="92" y2="92" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#7DD3FC" />
+      <stop offset="100%" stop-color="#38BDF8" />
+    </linearGradient>
+  </defs>
+
+  <!-- App Icon Squircle Base (Remove if used as a transparent header icon) -->
+  <rect width="128" height="128" rx="28" fill="url(#schottky-bg)" stroke="#1E293B" stroke-width="1.5" />
+
+  <!-- Schematic Diode Core (Horizontal Flow) -->
+  <g>
+    <!-- Anode Lead (Inflow trace from left) -->
+    <line x1="22" y1="64" x2="46" y2="64" stroke="url(#diode-gradient)" stroke-width="8" stroke-linecap="round" />
+
+    <!-- Anode Triangle (Forward momentum glyph) -->
+    <!-- Stylized with rounded vertices and a subtle inner cutout for a modern look -->
+    <path d="M 44 40 
+         C 44 37.5, 47 36, 49 37.2 
+         L 72 61.2 
+         C 73.5 62.4, 73.5 65.6, 72 66.8 
+         L 49 90.8 
+         C 47 92, 44 90.5, 44 88 
+         Z" fill="url(#diode-gradient)" />
+
+    <!-- Cathode Barrier: Iconic Schottky 'S' Hooks -->
+    <!-- Upper hook bent left, vertical barrier bar, lower hook bent right -->
+    <path d="M 68 40 
+         H 78 
+         V 88 
+         H 88" stroke="url(#cathode-accent)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+
+    <!-- Cathode Lead (Outflow trace exiting right) -->
+    <line x1="78" y1="64" x2="106" y2="64" stroke="url(#diode-gradient)" stroke-width="8" stroke-linecap="round" />
+  </g>
+</svg>
