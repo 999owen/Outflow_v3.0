@@ -2,25 +2,29 @@
   "name": "outflow-react",
   "version": "4.0.0",
   "private": true,
+  "homepage": "https://outflowfinancial.com",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist -b gh-pages"
   },
   "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "chart.js": "^4.4.4",
     "framer-motion": "^11.3.24",
     "lucide-react": "^0.441.0",
-    "chart.js": "^4.4.4",
-    "react-chartjs-2": "^5.2.0"
+    "react": "^18.3.1",
+    "react-chartjs-2": "^5.2.0",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
-    "vite": "^5.4.6",
-    "tailwindcss": "^3.4.10",
+    "autoprefixer": "^10.4.20",
+    "gh-pages": "^6.3.0",
     "postcss": "^8.4.45",
-    "autoprefixer": "^10.4.20"
+    "tailwindcss": "^3.4.10",
+    "vite": "^5.4.6"
   }
 }
