@@ -1,0 +1,118 @@
+/* Theme Definitions */
+
+/* 1. Default (Current Dark Slate) */
+[data-theme="default"],
+:root {
+    --bg-outer: #0d131f;
+    --bg-inner: #121826;
+    --panel-bg: #182234;
+    --border-color: rgba(255, 255, 255, 0.08);
+    --text-main: #f9fafb;
+    --text-muted: #9ca3af;
+    --accent-green: #4ADE80;
+    --accent-blue: #38bdf8;
+    --accent-red: #F87171;
+    --accent-yellow: #FBBF24;
+    --card-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    --card-radius: 12px;
+    --input-bg: #1A1A1A;
+    --hover-bg: #1F2937;
+    --chart-grid: #2D333B;
+    --chart-text: #8B949E;
+    --chart-tooltip-bg: rgba(16, 16, 16, 0.9);
+}
+
+/* 2. Linear Dark (Linear / Raycast Minimalist) */
+[data-theme="linear-dark"] {
+    --bg-outer: #090a0f;
+    --bg-inner: #090a0f;
+    --panel-bg: #12141c;
+    --border-color: rgba(255, 255, 255, 0.06);
+    --text-main: #f3f4f6;
+    --text-muted: #8b8d98;
+    --accent-green: #34d399;
+    --accent-blue: #5e6ad2;
+    --accent-red: #fb7185;
+    --accent-yellow: #fbbf24;
+    --card-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    --card-radius: 8px;
+    --input-bg: #090a0f;
+    --hover-bg: #1a1c26;
+    --chart-grid: rgba(255, 255, 255, 0.06);
+    --chart-text: #8b8d98;
+    --chart-tooltip-bg: #12141c;
+}
+
+/* 3. Nord (Muted Arctic Slate) */
+[data-theme="nord"] {
+    --bg-outer: #242933;
+    --bg-inner: #242933;
+    --panel-bg: #2e3440;
+    --border-color: #3b4252;
+    --text-main: #eceff4;
+    --text-muted: #d8dee9;
+    --accent-green: #a3be8c;
+    --accent-blue: #88c0d0;
+    --accent-red: #bf616a;
+    --accent-yellow: #ebcb8b;
+    --card-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    --card-radius: 12px;
+    --input-bg: #242933;
+    --hover-bg: #3b4252;
+    --chart-grid: #3b4252;
+    --chart-text: #d8dee9;
+    --chart-tooltip-bg: #2e3440;
+}
+
+/* 4. iOS Frosted (Glassmorphic Dark) */
+[data-theme="ios-frosted"] {
+    --bg-outer: #0b0f19;
+    --bg-inner: #0b0f19;
+    --panel-bg: rgba(255, 255, 255, 0.05);
+    --border-color: rgba(255, 255, 255, 0.12);
+    --text-main: #ffffff;
+    --text-muted: rgba(255, 255, 255, 0.6);
+    --accent-green: #34c759;
+    --accent-blue: #0ea5e9;
+    --accent-red: #ff3b30;
+    --accent-yellow: #ffcc00;
+    --card-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+    --card-radius: 18px;
+    --input-bg: rgba(255, 255, 255, 0.05);
+    --hover-bg: rgba(255, 255, 255, 0.1);
+    --chart-grid: rgba(255, 255, 255, 0.1);
+    --chart-text: rgba(255, 255, 255, 0.6);
+    --chart-tooltip-bg: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="ios-frosted"] .panel,
+[data-theme="ios-frosted"] .card,
+[data-theme="ios-frosted"] .chart-panel {
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+/* 5. Light (Clean iOS / Modern Light) */
+[data-theme="light"] {
+    --bg-outer: #f8fafc;
+    --bg-inner: #f8fafc;
+    --panel-bg: #ffffff;
+    --border-color: rgba(0, 0, 0, 0.08);
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --accent-green: #10b981;
+    --accent-blue: #0284c7;
+    --accent-red: #ef4444;
+    --accent-yellow: #f59e0b;
+    --card-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    --card-radius: 12px;
+    --input-bg: #f1f5f9;
+    --hover-bg: #f1f5f9;
+    --chart-grid: rgba(0, 0, 0, 0.08);
+    --chart-text: #64748b;
+    --chart-tooltip-bg: #ffffff;
+}
+
+[data-theme="light"] input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0);
+}

@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Production build outputs
+dist/
+**/dist/
+
+# Logs and test results
+*.log
+test-results/
+.last-run.json
+
+# OS files
+.DS_Store
+Thumbs.db

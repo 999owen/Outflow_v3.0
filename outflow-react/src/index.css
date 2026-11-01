@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html, body, #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background-color: #0d131f;
+    color: #f9fafb;
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow: hidden;
+  }
+
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.12);
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.22);
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.7);
+    opacity: 0.7;
+    cursor: pointer;
+  }
+
+  /* Remove number input spinners */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-panel rounded-card border border-white/[0.08] shadow-card;
+  }
+
+  .input-field {
+    @apply w-full bg-bg-inner border border-white/[0.08] text-text-main
+           px-3 py-2.5 rounded-lg text-sm
+           focus:outline-none focus:border-accent-blue/50 focus:shadow-[0_0_10px_rgba(56,189,248,0.1)]
+           transition-all duration-200 placeholder:text-text-muted;
+  }
+
+  .btn-primary {
+    @apply bg-accent-blue/10 text-accent-blue border border-accent-blue/20
+           px-4 py-2 rounded-lg text-sm font-semibold
+           hover:bg-accent-blue/20 transition-all duration-200 cursor-pointer;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent text-text-muted border border-white/[0.08]
+           px-4 py-2 rounded-lg text-sm font-medium
+           hover:bg-hover-bg hover:text-text-main transition-all duration-200 cursor-pointer;
+  }
+
+  .btn-danger {
+    @apply bg-transparent text-text-muted border-none
+           p-1.5 rounded
+           hover:text-accent-red transition-colors duration-200 cursor-pointer;
+  }
+}

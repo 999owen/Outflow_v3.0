@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - Outflow</title>
+    <link rel="icon" type="image/svg+xml" href="logo.svg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+
+        :root {
+            --sidebar-width: 240px;
+            --font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-outer);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .main-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Left Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--bg-inner);
+            border-right: 1px solid var(--border-color);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+        }
+
+        .sidebar-logo {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent-blue);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+        .logo-icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+        .sidebar-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s var(--ease-in-out), color 0.2s var(--ease-in-out);
+        }
+
+        .sidebar-menu-item i {
+            width: 18px;
+            text-align: center;
+        }
+
+        .sidebar-menu-item:hover, .sidebar-menu-item.active {
+            background-color: var(--hover-bg);
+            color: var(--text-main);
+        }
+
+        .sidebar-menu-item.active {
+            font-weight: 600;
+            border: 1px solid rgba(96, 165, 250, 0.2);
+            box-shadow: 0 0 10px rgba(96, 165, 250, 0.1);
+        }
+
+        /* Main Content Area */
+        .content-area {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .main-dashboard-content {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .header {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        /* Entry Panels */
+        .panels-grid {
+            display: grid;
+            grid-template-columns: 1fr; /* Single column for a wider grocery list */
+            gap: 30px;
+        }
+
+        .panel {
+            background-color: var(--panel-bg);
+            border-radius: var(--card-radius);
+            border: 1px solid var(--border-color);
+            padding: 25px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .panel-header h2 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            color: var(--text-main);
+        }
+
+        th, td {
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 5px;
+            transition: color 0.2s var(--ease-in-out);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .delete-btn:hover {
+            color: var(--accent-red);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"], input[type="number"], input[type="date"] {
+            flex: 1;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: border-color 0.2s var(--ease-in-out);
+        }
+
+        input[type="date"] { flex: 0.5; }
+        input[type="number"] { flex: 0.5; }
+        input[type="text"] { flex: 2; }
+
+        ::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            opacity: 0.6;
+            cursor: pointer;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: rgba(96, 165, 250, 0.5);
+            box-shadow: 0 0 10px rgba(96, 165, 250, 0.1);
+        }
+
+        button.neon-btn {
+            background-color: var(--bg-inner);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 10px 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: background 0.2s, border-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button.neon-btn:hover {
+            background-color: var(--hover-bg);
+            border-color: rgba(96, 165, 250, 0.4);
+        }
+
+        /* Analytics Dashboard Styles */
+        .month-nav {
+            display: flex;
+            align-items: center;
+        }
+
+        .month-nav .neon-btn {
+            padding: 5px 15px;
+            font-size: 14px;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .kpi-card {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .kpi-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .kpi-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 768px) {
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .main-container {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                padding: 10px;
+                box-sizing: border-box;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                flex-direction: row;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 5px;
+            }
+            .sidebar-logo {
+                width: 100%;
+                margin-bottom: 10px;
+                justify-content: center;
+            }
+            .sidebar-menu-item {
+                flex: 1;
+                justify-content: center;
+                padding: 8px;
+                font-size: 12px;
+            }
+            .sidebar > div {
+                margin-top: 0 !important;
+                flex: 1;
+                display: flex;
+            }
+            .sidebar > div > .sidebar-menu-item {
+                width: 100%;
+            }
+            .content-area {
+                padding: 15px;
+                box-sizing: border-box;
+            }
+            .input-group {
+                flex-direction: column;
+            }
+            input[type="date"], input[type="number"], input[type="text"], button.neon-btn {
+                width: 100%;
+                box-sizing: border-box;
+                flex: none;
+            }
+            .panel {
+                overflow-x: auto;
+            }
+        }
+    </style>
+
+    <link rel="stylesheet" href="theme.css">
+    <script>
+      (function() {
+        const savedTheme = localStorage.getItem('outflow_theme') || 'default';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      })();
+    </script>
+</head>
+<body>
+
+    <div class="main-container">
+        
+        <div class="sidebar">
+            <div class="sidebar-logo">
+    <img src="logo.svg" alt="Outflow" class="logo-icon">
+    Outflow
+</div>
+            <a href="dashboard.html" class="sidebar-menu-item"><i class="fas fa-th-large"></i> Dashboard</a>
+            <a href="entries.html" class="sidebar-menu-item"><i class="fas fa-list"></i> Entries</a>
+            <a href="bills.html" class="sidebar-menu-item"><i class="fas fa-file-invoice-dollar"></i> Bills</a>
+            <a href="grocery.html" class="sidebar-menu-item"><i class="fas fa-shopping-cart"></i> Groceries</a>
+            
+            <div style="margin-top: auto;">
+                <a href="settings.html" class="sidebar-menu-item"><i class="fas fa-cog"></i> Settings</a>
+            </div>
+        </div>
+
+        <div class="content-area">
+            
+            <div class="main-dashboard-content">
+                
+                <div class="header">
+                    <h1>Analytics</h1>
+                </div>
+
+                <div class="panels-grid">
+
+                    <div class="panel dashboard-panel">
+                        <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <h2>Groceries</h2>
+                            <div class="month-nav">
+                                <button id="prev-month-btn" class="neon-btn"><i class="fas fa-chevron-left"></i></button>
+                                <span id="current-month-display" style="font-weight: bold; margin: 0 15px;">Loading...</span>
+                                <button id="next-month-btn" class="neon-btn"><i class="fas fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+                        <div class="kpi-grid">
+                            <div class="kpi-card" style="position: relative;">
+                                <h3>Monthly Spend vs Cap</h3>
+                                <div class="kpi-value" id="kpi-total-spent">$0.00</div>
+                                <div id="kpi-pct-badge" style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">0% of limit used</div>
+                                <div id="kpi-pacing-badge" style="font-size: 11px; padding: 2px 6px; border-radius: var(--card-radius); display: inline-block;">On Track</div>
+                            </div>
+                            <div class="kpi-card">
+                                <h3>14-Day Rolling Burn</h3>
+                                <div class="kpi-value" id="kpi-14-day-burn">$0.00<span style="font-size: 12px; color: var(--text-muted); font-weight: normal;">/day</span></div>
+                                <div id="kpi-14-day-target" style="font-size: 11px; color: var(--text-muted); margin-top: 5px;">Target: $0.00/day</div>
+                            </div>
+                            <div class="kpi-card">
+                                <h3>30-Day Rolling Burn</h3>
+                                <div class="kpi-value" id="kpi-30-day-burn">$0.00<span style="font-size: 12px; color: var(--text-muted); font-weight: normal;">/day</span></div>
+                                <div id="kpi-30-day-target" style="font-size: 11px; color: var(--text-muted); margin-top: 5px;">Target: $0.00/day</div>
+                            </div>
+                            <div class="kpi-card">
+                                <h3>Monthly Remaining</h3>
+                                <div class="kpi-value" id="kpi-budget-remaining">$0.00</div>
+                            </div>
+                            <div class="kpi-card">
+                                <h3>Transactions</h3>
+                                <div class="kpi-value" id="kpi-transaction-count">0</div>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="groceryMonthChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Weekly Grocery Bills</h2>
+                        </div>
+                        
+                        <form class="input-group" id="grocery-form">
+                            <input type="date" id="gro-date" required>
+                            <input type="number" id="gro-amount" placeholder="Total Bill ($)" step="0.01" min="0.01" required>
+                            <input type="text" id="gro-notes" placeholder="Notes (e.g., Week 1, Walmart, bulk rice)" required>
+                            <button type="submit" class="neon-btn"><i class="fas fa-plus"></i> Add Bill</button>
+                        </form>
+
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Total Amount</th>
+                                    <th>Notes</th>
+                                    <th style="width: 30px;"></th> 
+                                </tr>
+                            </thead>
+                            <tbody id="grocery-table-body">
+                                <!-- JS populated -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="store.js?v=3"></script>
+    <script>
+        let db = TrackerStore.load();
+        let moneyFormatter = TrackerStore.formatter(db);
+
+        TrackerStore.markActiveNav();
+
+        // Analytics Dashboard State
+        let currentMonthDate = new Date();
+        currentMonthDate.setDate(1); // Prevent month navigation overflow on the 31st
+        let groceryChartInstance = null;
+
+        function renderGroceryDashboard() {
+            moneyFormatter = TrackerStore.formatter(db);
+
+            let activeLimit = db.settings.monthly_grocery_limit;
+
+            // Format current month for display
+            const monthNames = ["January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"];
+            document.getElementById('current-month-display').textContent =
+                monthNames[currentMonthDate.getMonth()] + ' ' + currentMonthDate.getFullYear();
+
+            // All expenses combined and filtered
+            let allExpenses = TrackerStore.getAllExpenses(db);
+            allExpenses = allExpenses.filter(e => e.entry_type === 'grocery' || e.category === 'Groceries');
+
+            const year = currentMonthDate.getFullYear();
+            const month = currentMonthDate.getMonth();
+
+            const monthEntries = allExpenses.filter(e => {
+                const d = TrackerStore.parseDate(e.date);
+                if (!d) return false;
+                return d.getFullYear() === year && d.getMonth() === month;
+            });
+
+            // Calculate Rolling Burn (independent of the selected month display, always based on today)
+            const today = new Date();
+            today.setHours(0,0,0,0);
+
+            function getBurn(days) {
+                const cutoff = new Date(today);
+                cutoff.setDate(cutoff.getDate() - days);
+                const sum = allExpenses.reduce((acc, e) => {
+                    const d = TrackerStore.parseDate(e.date);
+                    if (d && d > cutoff && d <= today) return acc + e.amount;
+                    return acc;
+                }, 0);
+                return sum / days;
+            }
+
+            const burn14 = getBurn(14);
+            const burn30 = getBurn(30);
+
+            // KPI Calculations for selected month
+            const totalSpent = monthEntries.reduce((sum, e) => sum + e.amount, 0);
+            const transactionCount = monthEntries.length;
+            const budgetRemaining = activeLimit - totalSpent;
+
+            // Pacing (only applies if viewing current month)
+            const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+            let pacingText = '';
+            let pacingColor = '';
+            let pacingBg = '';
+
+            if (isCurrentMonth) {
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const currentDay = today.getDate();
+                const pacedTarget = (currentDay / daysInMonth) * activeLimit;
+
+                if (totalSpent > pacedTarget) {
+                    pacingText = 'Over Pace';
+                    pacingColor = 'var(--accent-red)';
+                    pacingBg = 'rgba(248, 113, 113, 0.1)';
+                } else {
+                    pacingText = 'On Track';
+                    pacingColor = 'var(--accent-green)';
+                    pacingBg = 'rgba(74, 222, 128, 0.1)';
+                }
+            } else {
+                if (totalSpent > activeLimit) {
+                    pacingText = 'Over Budget';
+                    pacingColor = 'var(--accent-red)';
+                    pacingBg = 'rgba(248, 113, 113, 0.1)';
+                } else {
+                    pacingText = 'Under Budget';
+                    pacingColor = 'var(--accent-green)';
+                    pacingBg = 'rgba(74, 222, 128, 0.1)';
+                }
+            }
+
+            // Update KPIs
+            document.getElementById('kpi-total-spent').textContent = moneyFormatter.format(totalSpent) + ' / ' + moneyFormatter.format(activeLimit);
+
+            const pctUsed = activeLimit > 0 ? (totalSpent / activeLimit) * 100 : 0;
+            document.getElementById('kpi-pct-badge').textContent = Math.round(pctUsed) + '% of limit used';
+
+            const badge = document.getElementById('kpi-pacing-badge');
+            badge.textContent = pacingText;
+            badge.style.color = pacingColor;
+            badge.style.backgroundColor = pacingBg;
+
+            document.getElementById('kpi-14-day-burn').innerHTML = moneyFormatter.format(burn14) + '<span style="font-size: 12px; color: var(--text-muted); font-weight: normal;">/day</span>';
+            document.getElementById('kpi-30-day-burn').innerHTML = moneyFormatter.format(burn30) + '<span style="font-size: 12px; color: var(--text-muted); font-weight: normal;">/day</span>';
+
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const targetBurn = activeLimit / daysInMonth;
+            document.getElementById('kpi-14-day-target').textContent = 'Target: \u2264 ' + moneyFormatter.format(targetBurn) + '/day';
+            document.getElementById('kpi-30-day-target').textContent = 'Target: \u2264 ' + moneyFormatter.format(targetBurn) + '/day';
+
+            const kpiBudget = document.getElementById('kpi-budget-remaining');
+            kpiBudget.textContent = moneyFormatter.format(budgetRemaining);
+            kpiBudget.style.color = budgetRemaining < 0 ? 'var(--accent-red)' : 'var(--text-main)';
+
+            document.getElementById('kpi-transaction-count').textContent = transactionCount;
+
+            // Group by week using TrackerStore.weekKey
+            const weekTotals = {};
+            monthEntries.forEach(e => {
+                const key = TrackerStore.weekKey(e.date);
+                if (key) weekTotals[key] = (weekTotals[key] || 0) + e.amount;
+            });
+            const uniqueWeeks = Object.keys(weekTotals).sort();
+
+            // Prepare Chart Data
+            const labels = [];
+            const data = [];
+            const backgroundColors = [];
+            const trendData = [];
+
+            if (uniqueWeeks.length === 0) {
+                labels.push("No data");
+                data.push(0);
+                backgroundColors.push('rgba(96, 165, 250, 0.6)');
+                trendData.push(0);
+            } else {
+                let cumulativeSpend = 0;
+
+                uniqueWeeks.forEach(wk => {
+                    const total = weekTotals[wk];
+                    cumulativeSpend += total;
+                    labels.push(wk);
+                    data.push(total);
+
+                    // Simple moving average for trend line
+                    trendData.push(cumulativeSpend / labels.length);
+
+                    // Color bar red ONLY if the cumulative spend exceeds the total monthly limit.
+                    // Strict daily pacing on a weekly chart flags isolated bulk buys incorrectly.
+                    if (cumulativeSpend > activeLimit) {
+                        backgroundColors.push('rgba(248, 113, 113, 0.8)'); // red
+                    } else {
+                        backgroundColors.push('rgba(96, 165, 250, 0.8)'); // blue
+                    }
+                });
+            }
+
+            // Update or Create Chart
+            const ctx = document.getElementById('groceryMonthChart').getContext('2d');
+
+            if (groceryChartInstance) {
+                groceryChartInstance.data.labels = labels;
+                groceryChartInstance.data.datasets[0].data = data;
+                groceryChartInstance.data.datasets[0].backgroundColor = backgroundColors;
+
+                if (groceryChartInstance.data.datasets[1]) {
+                    groceryChartInstance.data.datasets[1].data = trendData;
+                }
+
+                groceryChartInstance.update();
+            } else {
+                groceryChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                type: 'bar',
+                                label: 'Weekly Spend ($)',
+                                data: data,
+                                backgroundColor: backgroundColors,
+                                borderRadius: 4,
+                                order: 2
+                            },
+                            {
+                                type: 'line',
+                                label: 'Trend (Avg/Wk)',
+                                data: trendData,
+                                borderColor: '#FBBF24', // yellow
+                                borderWidth: 2,
+                                borderDash: [5, 5],
+                                pointRadius: 0,
+                                tension: 0.3,
+                                fill: false,
+                                order: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: getComputedStyle(document.documentElement).getPropertyValue('--chart-text').trim() }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) { label += ': '; }
+                                        if (context.parsed.y !== null) {
+                                            label += moneyFormatter.format(context.parsed.y);
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--chart-text').trim() },
+                                grid: { color: getComputedStyle(document.documentElement).getPropertyValue('--chart-grid').trim(), drawBorder: false }
+                            },
+                            y: {
+                                ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--chart-text').trim() },
+                                grid: { color: getComputedStyle(document.documentElement).getPropertyValue('--chart-grid').trim(), drawBorder: false },
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        document.getElementById('prev-month-btn').addEventListener('click', () => {
+            currentMonthDate.setMonth(currentMonthDate.getMonth() - 1);
+            renderGroceryDashboard();
+        });
+
+        document.getElementById('next-month-btn').addEventListener('click', () => {
+            currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
+            renderGroceryDashboard();
+        });
+
+        function renderGroceries() {
+            moneyFormatter = TrackerStore.formatter(db);
+            const groceryLimit = db.settings.weekly_grocery_limit;
+            const tbody = document.getElementById('grocery-table-body');
+            tbody.innerHTML = '';
+
+            const rows = [...db.grocery_entries]
+                .sort((a, b) => TrackerStore.parseDate(b.date) - TrackerStore.parseDate(a.date));
+
+            if (rows.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = '<td colspan="4" style="color: var(--text-muted); text-align: center; padding: 18px;">No grocery bills yet.</td>';
+                tbody.appendChild(tr);
+                return;
+            }
+
+            rows.forEach(entry => {
+                const tr = document.createElement('tr');
+
+                const dateCell = document.createElement('td');
+                dateCell.textContent = entry.date;
+
+                // Over the weekly limit shows red, under shows green.
+                const amountCell = document.createElement('td');
+                amountCell.textContent = moneyFormatter.format(entry.amount);
+                amountCell.style.cssText = 'font-weight: 600; color: ' +
+                    (entry.amount > groceryLimit ? 'var(--accent-red)' : 'var(--accent-green)') + ';';
+
+                const notesCell = document.createElement('td');
+                notesCell.textContent = entry.notes;
+
+                const actionCell = document.createElement('td');
+                const btn = document.createElement('button');
+                btn.className = 'delete-btn';
+                btn.innerHTML = '<i class="fas fa-trash"></i>';
+                btn.addEventListener('click', () => {
+                    if (!confirm("Are you sure you want to delete this grocery entry?")) return;
+                    try {
+                        db = TrackerStore.deleteEntry('grocery', entry.id);
+                    } catch (err) {
+                        alert(err.message);
+                        return;
+                    }
+                    renderGroceries();
+                });
+                actionCell.appendChild(btn);
+
+                tr.appendChild(dateCell);
+                tr.appendChild(amountCell);
+                tr.appendChild(notesCell);
+                tr.appendChild(actionCell);
+                tbody.appendChild(tr);
+            });
+
+            renderGroceryDashboard();
+        }
+
+        document.getElementById('grocery-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            try {
+                db = TrackerStore.addEntry('grocery', {
+                    date: document.getElementById('gro-date').value,
+                    amount: document.getElementById('gro-amount').value,
+                    notes: document.getElementById('gro-notes').value
+                });
+            } catch (err) {
+                alert(err.message);
+                return;
+            }
+            this.reset();
+            renderGroceries();
+        });
+
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'outflow_theme' || !e.key) {
+                const savedTheme = localStorage.getItem('outflow_theme') || 'default';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+                renderGroceryDashboard();
+            }
+        });
+
+        // Stay in sync if another tab clears or imports data
+        TrackerStore.subscribe(function (fresh) {
+            db = fresh;
+            renderGroceries();
+        });
+
+        renderGroceries();
+    </script>
+
+</body>
+</html>

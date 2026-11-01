@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Outflow</title>
+    <link rel="icon" type="image/svg+xml" href="logo.svg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+
+        :root {
+            --sidebar-width: 240px;
+            --font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-outer);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .main-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Left Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--bg-inner);
+            border-right: 1px solid var(--border-color);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+        }
+
+        .sidebar-logo {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent-blue);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+        .logo-icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+        .sidebar-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s var(--ease-in-out), color 0.2s var(--ease-in-out);
+        }
+
+        .sidebar-menu-item i {
+            width: 18px;
+            text-align: center;
+        }
+
+        .sidebar-menu-item:hover, .sidebar-menu-item.active {
+            background-color: var(--hover-bg);
+            color: var(--text-main);
+        }
+
+        .sidebar-menu-item.active {
+            font-weight: 600;
+            border: 1px solid rgba(96, 165, 250, 0.2);
+            box-shadow: 0 0 10px rgba(96, 165, 250, 0.1);
+        }
+
+        /* Main Content Area */
+        .content-area {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .main-dashboard-content {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .header {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        /* Settings Panels */
+        .panels-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+            max-width: 800px; /* Keep settings from stretching too wide */
+        }
+
+        .panel {
+            background-color: var(--panel-bg);
+            border-radius: var(--card-radius);
+            border: 1px solid var(--border-color);
+            padding: 25px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .panel-header h2 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* Settings Rows */
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .setting-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .setting-info h3 {
+            margin: 0 0 5px 0;
+            font-size: 15px;
+            color: var(--text-main);
+        }
+
+        .setting-info p {
+            margin: 0;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* Buttons & Inputs */
+        button.neon-btn {
+            background-color: var(--bg-inner);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button.neon-btn:hover {
+            background-color: var(--hover-bg);
+            border-color: rgba(96, 165, 250, 0.4);
+        }
+
+        button.neon-btn.blue {
+            background-color: transparent;
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        button.neon-btn.blue:hover {
+            background-color: rgba(96, 165, 250, 0.1);
+            box-shadow: 0 0 10px rgba(96, 165, 250, 0.2);
+        }
+        
+        button.neon-btn.green {
+            background-color: transparent;
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        button.neon-btn.green:hover {
+            background-color: rgba(74, 222, 128, 0.1);
+            box-shadow: 0 0 10px rgba(74, 222, 128, 0.2);
+        }
+
+        input[type="number"], select {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            width: 150px;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: rgba(96, 165, 250, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                padding: 10px;
+                box-sizing: border-box;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                flex-direction: row;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 5px;
+            }
+            .sidebar-logo {
+                width: 100%;
+                margin-bottom: 10px;
+                justify-content: center;
+            }
+            .sidebar-menu-item {
+                flex: 1;
+                justify-content: center;
+                padding: 8px;
+                font-size: 12px;
+            }
+            .sidebar > div {
+                margin-top: 0 !important;
+                flex: 1;
+                display: flex;
+            }
+            .sidebar > div > .sidebar-menu-item {
+                width: 100%;
+            }
+            .content-area {
+                padding: 15px;
+                box-sizing: border-box;
+            }
+            .setting-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+
+    <link rel="stylesheet" href="theme.css">
+    <script>
+      (function() {
+        const savedTheme = localStorage.getItem('outflow_theme') || 'default';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      })();
+    </script>
+</head>
+<body>
+
+    <div class="main-container">
+        
+        <div class="sidebar">
+            <div class="sidebar-logo">
+    <img src="logo.svg" alt="Outflow" class="logo-icon">
+    Outflow
+</div>
+            <a href="dashboard.html" class="sidebar-menu-item"><i class="fas fa-th-large"></i> Dashboard</a>
+            <a href="entries.html" class="sidebar-menu-item"><i class="fas fa-list"></i> Entries</a>
+            <a href="bills.html" class="sidebar-menu-item"><i class="fas fa-file-invoice-dollar"></i> Bills</a>
+            <a href="grocery.html" class="sidebar-menu-item"><i class="fas fa-shopping-cart"></i> Groceries</a>
+            
+            <div style="margin-top: auto;">
+                <a href="settings.html" class="sidebar-menu-item"><i class="fas fa-cog"></i> Settings</a>
+            </div>
+        </div>
+
+        <div class="content-area">
+            
+            <div class="main-dashboard-content">
+                
+                <div class="header">
+                    <h1>Settings</h1>
+                </div>
+
+                <div class="panels-grid">
+
+                    <!-- Appearance Panel -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Appearance</h2>
+                        </div>
+
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h3>Theme</h3>
+                                <p>Select a color scheme for the application.</p>
+                            </div>
+                            <div>
+                                <select id="theme-selector">
+                                    <option value="default">Default (Dark Slate)</option>
+                                    <option value="linear-dark">Linear Dark</option>
+                                    <option value="nord">Nord Arctic</option>
+                                    <option value="ios-frosted">iOS Frosted</option>
+                                    <option value="light">Default Light</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <!-- Preferences Panel -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Application Preferences</h2>
+                        </div>
+                        
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h3>Spending Money Allocation</h3>
+                                <p>Percentage of income designated for active spending.</p>
+                            </div>
+                            <div>
+                                <input type="number" id="set-spending-pct" value="35" min="1" max="100"> %
+                            </div>
+                        </div>
+
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h3>Monthly Grocery Limit</h3>
+                                <p>Set the monthly threshold line for your grocery analytics.</p>
+                            </div>
+                            <div>
+                                $<input type="number" id="set-monthly-grocery-limit" value="280" min="1">
+                            </div>
+                        </div>
+
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h3>Currency Display</h3>
+                                <p>Format used for dashboard values.</p>
+                            </div>
+                            <div>
+                                <select id="set-currency">
+                                    <option value="USD">USD ($)</option>
+                                    <option value="EUR">EUR (€)</option>
+                                    <option value="GBP">GBP (£)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sync Panel -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>GitHub Gist Sync</h2>
+                        </div>
+
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h3>GitHub Token</h3>
+                                <p>A personal access token with gist permissions.</p>
+                            </div>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <input type="password" id="set-github-token" placeholder="ghp_..." style="width: 250px;">
+                                <button class="neon-btn" onclick="toggleTokenVisibility()" style="padding: 10px; min-width: 40px; justify-content: center;">
+                                    <i id="token-eye-icon" class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h3>Gist ID</h3>
+                                <p>Leave blank to create a new Gist automatically.</p>
+                            </div>
+                            <div>
+                                <input type="text" id="set-gist-id" placeholder="Gist ID..." style="width: 250px;">
+                            </div>
+                        </div>
+
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h3>Manual Sync</h3>
+                                <p>Push your current data or pull the latest changes.</p>
+                            </div>
+                            <div>
+                                <button class="neon-btn blue" onclick="forceGistSync()">
+                                    <i class="fas fa-sync-alt"></i> Sync Now
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Data Management Panel -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Data Management</h2>
+                        </div>
+                        
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h3>Export Data</h3>
+                                <p>Download a .json file containing all your entries and history to safely back it up.</p>
+                            </div>
+                            <div>
+                                <button class="neon-btn blue" onclick="exportData()">
+                                    <i class="fas fa-download"></i> Export Backup
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h3>Import Data</h3>
+                                <p>Restore your dashboard from a previously saved .json backup file.</p>
+                            </div>
+                            <div>
+                                <!-- Hidden file input triggered by the button -->
+                                <input type="file" id="importFile" accept=".json" style="display: none;" onchange="handleFileImport(event)">
+                                <button class="neon-btn green" onclick="document.getElementById('importFile').click()">
+                                    <i class="fas fa-upload"></i> Import Backup
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <h3>Reset Application</h3>
+                                <p style="color: var(--accent-red);">Warning: This will permanently clear all local entries.</p>
+                            </div>
+                            <div>
+                                <button class="neon-btn" style="color: var(--accent-red); border-color: var(--accent-red);" onclick="clearData()">
+                                    <i class="fas fa-trash-alt"></i> Clear Data
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Management Logic -->
+    <script src="store.js?v=3"></script>
+    <script>
+        let db = TrackerStore.load();
+
+        // --- Preferences: load current values, save on change ---
+        const pctInput = document.getElementById('set-spending-pct');
+        const monthlyGroceryLimitInput = document.getElementById('set-monthly-grocery-limit');
+        const currencySelect = document.getElementById('set-currency');
+        const tokenInput = document.getElementById('set-github-token');
+        const gistIdInput = document.getElementById('set-gist-id');
+
+        function loadSettingsIntoForm() {
+            pctInput.value = db.settings.spending_percentage;
+            monthlyGroceryLimitInput.value = db.settings.monthly_grocery_limit;
+            currencySelect.value = db.settings.currency;
+            tokenInput.value = db.settings.github_token;
+            gistIdInput.value = db.settings.gist_id;
+        }
+
+        // The store clamps out-of-range values, then the form reloads to show
+        // what was actually saved rather than what was typed.
+        function applySetting(key, value) {
+            try {
+                db = TrackerStore.updateSetting(key, value);
+            } catch (err) {
+                alert(err.message);
+            }
+            loadSettingsIntoForm();
+        }
+
+        pctInput.addEventListener('change', () => applySetting('spending_percentage', pctInput.value));
+        monthlyGroceryLimitInput.addEventListener('change', () => applySetting('monthly_grocery_limit', monthlyGroceryLimitInput.value));
+        currencySelect.addEventListener('change', () => applySetting('currency', currencySelect.value));
+        tokenInput.addEventListener('change', () => applySetting('github_token', tokenInput.value));
+        gistIdInput.addEventListener('change', () => applySetting('gist_id', gistIdInput.value));
+
+
+        const themeSelector = document.getElementById('theme-selector');
+        themeSelector.value = localStorage.getItem('outflow_theme') || 'default';
+        themeSelector.addEventListener('change', (e) => {
+            const newTheme = e.target.value;
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('outflow_theme', newTheme);
+            window.dispatchEvent(new Event('storage'));
+        });
+
+        // Stay in sync if another tab clears or imports data
+        TrackerStore.subscribe(function (fresh) {
+            db = fresh;
+            loadSettingsIntoForm();
+        });
+
+        TrackerStore.markActiveNav();
+        loadSettingsIntoForm();
+    </script>
+    <script>
+        // 1. Export Data - downloads everything currently in localStorage
+        function exportData() {
+            try {
+                const n = TrackerStore.exportToFile();
+                if (n.total === 0) {
+                    alert("There is nothing to export yet - the tracker is empty.");
+                }
+            } catch (err) {
+                alert("Could not export your data: " + err.message);
+                console.error("Export error:", err);
+            }
+        }
+
+        // 2. Import Data - replaces localStorage with the contents of a backup file
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!confirm("Importing will merge the backup with your current data. Continue?")) {
+                event.target.value = "";
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onerror = function () {
+                alert("Could not read that file. Please try again.");
+                document.getElementById('importFile').value = "";
+            };
+
+            reader.onload = function (e) {
+                try {
+                    const result = TrackerStore.importFromJSON(e.target.result);
+                    db = result.db;
+                    loadSettingsIntoForm();
+
+                    const n = TrackerStore.counts(db);
+                    let message = "Backup imported - " + result.imported + " entries restored " +
+                        "(" + n.income + " paycheck, " + n.spend + " spend, " + n.grocery + " grocery).";
+                    if (result.skipped > 0) {
+                        message += "\n\n" + result.skipped + " entr" + (result.skipped === 1 ? "y was" : "ies were") +
+                            " skipped because of a missing or invalid date or amount.";
+                    }
+                    alert(message);
+                } catch (error) {
+                    alert("Import failed. " + error.message);
+                    console.error("Import error:", error);
+                } finally {
+                    // Reset the file input so the same file can be picked again
+                    document.getElementById('importFile').value = "";
+                }
+            };
+
+            reader.readAsText(file);
+        }
+
+        function toggleTokenVisibility() {
+            const input = document.getElementById('set-github-token');
+            const icon = document.getElementById('token-eye-icon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fas fa-eye';
+            }
+        }
+
+        async function forceGistSync() {
+            try {
+                if (db.settings.gist_id) {
+                    await TrackerStore.pullFromGist();
+                }
+                // Reload db after pulling so we push the updated state, not the stale closure state
+                db = TrackerStore.load();
+                await TrackerStore.pushToGist(db);
+                alert('Sync complete!');
+            } catch (err) {
+                alert('Sync error: ' + err.message);
+            }
+        }
+
+        // 3. Clear Data - wipes the stored entries and settings
+        function clearData() {
+            const n = TrackerStore.counts(TrackerStore.load());
+            if (n.total === 0) {
+                alert("There is no data to clear - the tracker is already empty.");
+                return;
+            }
+            const detail = n.income + " paycheck, " + n.spend + " spend and " + n.grocery + " grocery entries";
+            if (!confirm("Delete " + detail + "? This cannot be undone unless you have a backup.")) return;
+
+            try {
+                db = TrackerStore.clear();
+            } catch (err) {
+                alert(err.message);
+                return;
+            }
+            loadSettingsIntoForm();
+            alert("All local data has been cleared.");
+        }
+    </script>
+
+</body>
+</html>
