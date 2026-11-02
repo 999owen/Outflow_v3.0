@@ -12,6 +12,7 @@ export const DEFAULT_SETTINGS = {
   currency: 'USD',
   github_token: '',
   gist_id: '',
+  user_name: '',
 };
 
 export function emptyData() {
@@ -91,6 +92,7 @@ export function normalizeSettings(raw) {
     currency: SUPPORTED_CURRENCIES.indexOf(s.currency) > -1 ? s.currency : DEFAULT_SETTINGS.currency,
     github_token: s.github_token ? String(s.github_token) : '',
     gist_id: s.gist_id ? String(s.gist_id) : '',
+    user_name: s.user_name ? String(s.user_name).trim() : '',
   };
 }
 
@@ -651,4 +653,48 @@ export async function pullFromGist() {
     console.error('Gist pull error:', err);
     return false;
   }
+}
+
+export function getInitials(name) {
+  if (!name || typeof name !== 'string') return 'U';
+  const cleaned = name.trim();
+  if (!cleaned) return 'U';
+  const parts = cleaned.split(/\s+/).filter(Boolean);
+  if (parts.length === 1) {
+    const letters = parts[0].replace(/[^a-zA-Z0-9]/g, '');
+    return (letters.slice(0, 2) || parts[0].slice(0, 1)).toUpperCase();
+  }
+  const first = parts[0].replace(/[^a-zA-Z0-9]/g, '')[0] || parts[0][0];
+  const last = parts[parts.length - 1].replace(/[^a-zA-Z0-9]/g, '')[0] || parts[parts.length - 1][0];
+  return (first + last).toUpperCase();
+}
+
+export async function fetchGitHubUser(token) {
+  if (!token || typeof token !== 'string') {
+    throw new Error('Please enter a GitHub token.');
+  }
+  const cleanToken = token.trim();
+  if (!cleanToken) {
+    throw new Error('Please enter a GitHub token.');
+  }
+  const res = await fetch('https://api.github.com/user', {
+    headers: {
+      Authorization: 'token ' + cleanToken,
+      Accept: 'application/vnd.github.v3+json',
+    },
+    cache: 'no-store',
+  });
+  if (!res.ok) {
+    if (res.status === 401) throw new Error('Invalid GitHub token (401 Unauthorized).');
+    if (res.status === 403) throw new Error('GitHub API rate limit exceeded or token forbidden (403).');
+    throw new Error(`GitHub API error (${res.status})`);
+  }
+  const data = await res.json();
+  const name = (data.name && String(data.name).trim()) || '';
+  const login = (data.login && String(data.login).trim()) || '';
+  return {
+    name,
+    login,
+    preferred: name || login || '',
+  };
 }

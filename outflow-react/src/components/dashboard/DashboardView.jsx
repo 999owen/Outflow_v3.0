@@ -29,6 +29,8 @@ const itemVariants = {
 };
 
 export default function DashboardView() {
+  const { db } = useOutflowStore();
+  const userName = db?.settings?.user_name?.trim();
   const now = new Date();
   const monthLabel = MONTH_NAMES[now.getMonth()] + ' ' + now.getFullYear();
 
@@ -43,7 +45,7 @@ export default function DashboardView() {
       >
         <div>
           <h1 className="text-2xl font-bold text-text-main tracking-tight">
-            {getGreeting()}, Owen
+            {getGreeting()}{userName ? `, ${userName}` : ''}
           </h1>
           <p className="text-text-muted text-sm mt-0.5">Here's your financial snapshot.</p>
         </div>

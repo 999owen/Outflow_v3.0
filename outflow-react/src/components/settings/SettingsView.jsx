@@ -1,13 +1,17 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Download, Upload, Trash2, RefreshCw, Save, Github } from 'lucide-react';
+import { Download, Upload, Trash2, RefreshCw, Save, Github, User, Loader2 } from 'lucide-react';
 import { useOutflowStore } from '../../store/useOutflowStore.jsx';
 import Card from '../ui/Card.jsx';
-import { SUPPORTED_CURRENCIES } from '../../store/trackerStore.js';
+import { SUPPORTED_CURRENCIES, fetchGitHubUser } from '../../store/trackerStore.js';
 
 export default function SettingsView() {
   const { db, updateSetting, clearAll, exportData, importData, syncNow, syncStatus } = useOutflowStore();
   const settings = db?.settings || {};
+
+  const [userName, setUserName] = useState(settings.user_name || '');
+  const [nameStatus, setNameStatus] = useState('');
+  const [fetchingName, setFetchingName] = useState(false);
 
   const [spendPct, setSpendPct] = useState(String(settings.spending_percentage ?? 35));
   const [groceryLimit, setGroceryLimit] = useState(String(settings.monthly_grocery_limit ?? 280));
@@ -16,6 +20,46 @@ export default function SettingsView() {
   const [importMsg, setImportMsg] = useState('');
   const [clearConfirm, setClearConfirm] = useState(false);
   const fileRef = useRef(null);
+
+  useEffect(() => {
+    if (settings.user_name !== undefined) {
+      setUserName(settings.user_name || '');
+    }
+  }, [settings.user_name]);
+
+  const saveUserName = () => {
+    const trimmed = userName.trim();
+    updateSetting('user_name', trimmed);
+    setNameStatus('✓ Saved');
+    setTimeout(() => setNameStatus(''), 2500);
+  };
+
+  const handleFetchGitHubName = async () => {
+    const activeToken = token.trim() || settings.github_token;
+    if (!activeToken) {
+      setNameStatus('✗ Enter a GitHub token below first');
+      setTimeout(() => setNameStatus(''), 3000);
+      return;
+    }
+    setFetchingName(true);
+    setNameStatus('');
+    try {
+      const profile = await fetchGitHubUser(activeToken);
+      const fetched = profile.preferred;
+      if (fetched) {
+        setUserName(fetched);
+        updateSetting('user_name', fetched);
+        setNameStatus(`✓ Fetched: ${fetched}`);
+      } else {
+        setNameStatus('✗ No display name found on GitHub');
+      }
+    } catch (err) {
+      setNameStatus('✗ ' + (err.message || 'Failed to fetch GitHub name'));
+    } finally {
+      setFetchingName(false);
+      setTimeout(() => setNameStatus(''), 3500);
+    }
+  };
 
   const saveSpendPct = () => {
     const v = parseFloat(spendPct);
@@ -27,8 +71,25 @@ export default function SettingsView() {
     if (isFinite(v) && v > 0) updateSetting('monthly_grocery_limit', v);
   };
 
-  const saveToken = () => {
-    updateSetting('github_token', token.trim());
+  const saveToken = async () => {
+    const trimmed = token.trim();
+    updateSetting('github_token', trimmed);
+    if (trimmed && !userName.trim()) {
+      try {
+        setFetchingName(true);
+        const profile = await fetchGitHubUser(trimmed);
+        if (profile.preferred) {
+          setUserName(profile.preferred);
+          updateSetting('user_name', profile.preferred);
+          setNameStatus(`✓ Auto-filled name: ${profile.preferred}`);
+          setTimeout(() => setNameStatus(''), 3500);
+        }
+      } catch {
+        // silent fallback if token had no name
+      } finally {
+        setFetchingName(false);
+      }
+    }
   };
 
   const saveGistId = () => {
@@ -63,6 +124,57 @@ export default function SettingsView() {
         <h1 className="text-2xl font-bold text-text-main">Settings</h1>
         <p className="text-text-muted text-sm mt-0.5">Configure your spending rules and sync preferences.</p>
       </div>
+
+      {/* ── Profile ────────────────────────────────────────────────────── */}
+      <Section title="Profile" icon={<User size={14} className="text-text-muted" />}>
+        <SettingRow
+          label="Your Name"
+          description="Display name shown in the sidebar profile and dashboard greeting. Defaults to 'User' if left blank."
+        >
+          <div className="flex flex-col items-end gap-1.5">
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="User"
+                className="input-field w-36 sm:w-48"
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
+                onBlur={saveUserName}
+                onKeyDown={(e) => { if (e.key === 'Enter') saveUserName(); }}
+              />
+              <button
+                onClick={saveUserName}
+                title="Save Name"
+                className="btn-ghost px-2.5 py-2 text-xs flex items-center gap-1"
+              >
+                <Save size={12} />
+              </button>
+              <button
+                onClick={handleFetchGitHubName}
+                disabled={fetchingName || (!token.trim() && !settings.github_token)}
+                title={
+                  token.trim() || settings.github_token
+                    ? 'Fetch name from GitHub account'
+                    : 'Add a GitHub token below to fetch your name'
+                }
+                className="btn-ghost px-2.5 py-2 text-xs flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {fetchingName ? (
+                  <Loader2 size={12} className="animate-spin text-accent-blue" />
+                ) : (
+                  <Github size={12} />
+                )}
+                <span className="hidden sm:inline">Fetch from GitHub</span>
+              </button>
+            </div>
+            {nameStatus && (
+              <span className={`text-[11px] ${nameStatus.startsWith('✓') ? 'text-accent-green' : nameStatus.startsWith('✗') ? 'text-accent-red' : 'text-text-muted'}`}>
+                {nameStatus}
+              </span>
+            )}
+          </div>
+        </SettingRow>
+      </Section>
 
       {/* ── Spending Rules ─────────────────────────────────────────────── */}
       <Section title="Spending Rules">

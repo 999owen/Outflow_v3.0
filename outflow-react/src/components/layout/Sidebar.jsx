@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useOutflowStore } from '../../store/useOutflowStore.jsx';
 import { VIEWS } from '../../constants/views.js';
+import { getInitials } from '../../store/trackerStore.js';
 
 const NAV_ITEMS = [
   { id: VIEWS.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard },
@@ -22,6 +23,9 @@ const NAV_ITEMS = [
 export default function Sidebar({ activeView, onNavigate }) {
   const { syncStatus, db } = useOutflowStore();
   const hasSync = !!(db.settings.github_token && db.settings.gist_id);
+  const rawName = db?.settings?.user_name?.trim();
+  const displayName = rawName || 'User';
+  const initials = getInitials(rawName);
 
   return (
     <aside className="
@@ -93,11 +97,11 @@ export default function Sidebar({ activeView, onNavigate }) {
         {/* User profile / sync status indicator dot */}
         <div className="flex items-center justify-between px-2.5 md:px-3 py-1.5 md:py-2.5 mt-0 md:mt-2 rounded-lg bg-white/[0.03] border border-white/[0.05]">
           <div className="flex items-center gap-2 md:gap-2.5 min-w-0">
-            <div className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-accent-blue/20 text-accent-blue flex items-center justify-center font-bold text-[10px] md:text-xs shrink-0">
-              OF
+            <div className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-accent-blue/20 text-accent-blue flex items-center justify-center font-bold text-[10px] md:text-xs shrink-0 tracking-wider">
+              {initials}
             </div>
             <div className="min-w-0 hidden md:block">
-              <p className="text-xs font-semibold text-text-main truncate">Owen</p>
+              <p className="text-xs font-semibold text-text-main truncate">{displayName}</p>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <SyncDot status={syncStatus} hasSync={hasSync} />
                 <span className="text-[10px] text-text-muted">
