@@ -4,6 +4,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { useOutflowStore } from '../../store/useOutflowStore.jsx';
 import Card from '../ui/Card.jsx';
 import Modal from '../ui/Modal.jsx';
+import WeeklyBars from '../ui/WeeklyBars.jsx';
 import { parseDate } from '../../store/trackerStore.js';
 
 const today = () => {
@@ -57,8 +58,6 @@ export default function GroceriesView() {
     setDeletingId(id);
     setTimeout(() => { deleteEntry?.('grocery', id); setDeletingId(null); }, 220);
   };
-
-  const weekMax = Math.max(...weeks.map((w) => Number(w?.total) || 0), 1);
 
   return (
     <div className="p-6 xl:p-8">
@@ -156,28 +155,11 @@ export default function GroceriesView() {
           {/* Weekly chart */}
           <Card className="p-5">
             <p className="text-[10px] uppercase tracking-widest text-text-muted font-semibold mb-4">Weekly History</p>
-            <div className="grid grid-cols-4 gap-1.5">
-              {(weeks || []).slice(-4).map((w, idx) => {
-                const totalVal = Number(w?.total) || 0;
-                const h = Math.max((totalVal / weekMax) * 80, 4);
-                const isThisWeek = w?.label === 'This Week';
-                return (
-                  <div key={w?.key || idx} className="flex flex-col items-center gap-1">
-                    <div className="flex items-end h-20 w-full justify-center">
-                      <div
-                        className="w-full rounded-t transition-all duration-500"
-                        style={{
-                          height: h + 'px',
-                          background: isThisWeek ? '#FBBF24' : 'rgba(251,191,36,0.25)',
-                        }}
-                      />
-                    </div>
-                    <span className="text-[9px] text-text-muted text-center">{w?.label || '—'}</span>
-                    <span className="text-[9px] text-text-muted">{formatMoney(totalVal)}</span>
-                  </div>
-                );
-              })}
-            </div>
+            <WeeklyBars
+              weeks={(weeks || []).slice(-4)}
+              maxHeight={80}
+              formatMoney={formatMoney}
+            />
           </Card>
         </div>
       </div>

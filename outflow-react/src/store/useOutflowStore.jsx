@@ -1,5 +1,5 @@
 // useOutflowStore.js — React Context + hook wrapping trackerStore.js
-import { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
+import { createContext, useContext, useReducer, useEffect, useCallback, useRef } from 'react';
 import * as Store from './trackerStore.js';
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -23,18 +23,35 @@ export function OutflowProvider({ children }) {
     syncStatus: 'idle',
   });
 
-  // Re-hydrate whenever another tab or window writes
-  useEffect(() => {
-    const refresh = () => dispatch({ type: 'SET_DB', db: Store.load() });
-    window.addEventListener('storage', (e) => {
-      if (e.key === Store.STORAGE_KEY || e.key === null) refresh();
-    });
-    window.addEventListener('tracker-updated', refresh);
-    return () => {
-      window.removeEventListener('storage', refresh);
-      window.removeEventListener('tracker-updated', refresh);
-    };
+  const refresh = useCallback(() => {
+    dispatch({ type: 'SET_DB', db: Store.load() });
   }, []);
+
+  // Debounced refresh — collapses rapid successive saves (e.g. save → async gist
+  // push → persist again) into a single re-render so mid-animation store updates
+  // don't corrupt Framer Motion's exit/enter lifecycle.
+  const debounceTimer = useRef(null);
+  const debouncedRefresh = useCallback(() => {
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      dispatch({ type: 'SET_DB', db: Store.load() });
+    }, 50);
+  }, []);
+
+  // Re-hydrate whenever another tab or window writes.
+  // Keep stable named references so the cleanup can actually remove the same fn.
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === Store.STORAGE_KEY || e.key === null) debouncedRefresh();
+    };
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('tracker-updated', debouncedRefresh);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('tracker-updated', debouncedRefresh);
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    };
+  }, [debouncedRefresh]);
 
   // Auto-pull on load
   useEffect(() => {
@@ -47,10 +64,6 @@ export function OutflowProvider({ children }) {
     };
     pull();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const refresh = useCallback(() => {
-    dispatch({ type: 'SET_DB', db: Store.load() });
   }, []);
 
   return (

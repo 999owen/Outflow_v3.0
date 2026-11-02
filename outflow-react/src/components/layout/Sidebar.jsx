@@ -104,7 +104,7 @@ export default function Sidebar({ activeView, onNavigate }) {
                   {syncStatus === 'syncing' ? 'Syncing…' :
                    syncStatus === 'synced'  ? 'Synced' :
                    syncStatus === 'error'   ? 'Sync error' :
-                   hasSync ? 'Gist on' : 'Offline'}
+                   hasSync ? 'Gist Connected' : 'local only'}
                 </span>
               </div>
             </div>

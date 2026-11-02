@@ -1,6 +1,7 @@
 import { useOutflowStore } from '../../store/useOutflowStore.jsx';
 import Card from '../ui/Card.jsx';
 import AnimatedNumber from '../ui/AnimatedNumber.jsx';
+import WeeklyBars from '../ui/WeeklyBars.jsx';
 import { ShoppingCart } from 'lucide-react';
 
 export default function GroceryMonitor() {
@@ -21,8 +22,6 @@ export default function GroceryMonitor() {
 
   // Weekly breakdown (last 4 weeks)
   const weeks = typeof groceryByWeek === 'function' ? (groceryByWeek(4) || []) : [];
-  const weekMax = Math.max(...weeks.map((x) => Number(x?.total) || 0), 1);
-
   return (
     <Card className="p-5">
       <div className="flex items-center gap-2 mb-3">
@@ -54,28 +53,7 @@ export default function GroceryMonitor() {
       </div>
 
       {/* Weekly mini-bars */}
-      <div className="grid grid-cols-4 gap-1.5">
-        {weeks.map((w, idx) => {
-          const totalVal = Number(w?.total) || 0;
-          const h = Math.max((totalVal / weekMax) * 48, 4);
-          const isThisWeek = w?.label === 'This Week';
-          return (
-            <div key={w?.key || idx} className="flex flex-col items-center gap-1">
-              <div className="flex items-end h-12 w-full justify-center">
-                <div
-                  className="w-full rounded-t transition-all duration-500"
-                  style={{
-                    height: h + 'px',
-                    background: isThisWeek ? '#FBBF24' : 'rgba(251,191,36,0.25)',
-                  }}
-                />
-              </div>
-              <span className="text-[9px] text-text-muted text-center leading-tight">{w?.label || '—'}</span>
-              <span className="text-[9px] text-text-muted">{formatMoney(totalVal)}</span>
-            </div>
-          );
-        })}
-      </div>
+      <WeeklyBars weeks={weeks} maxHeight={48} formatMoney={formatMoney} />
 
       {/* This week callout */}
       <div className="mt-3 pt-3 border-t border-white/[0.06] flex justify-between text-xs">

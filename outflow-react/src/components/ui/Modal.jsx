@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 
@@ -11,7 +12,11 @@ export default function Modal({ open, onClose, title, children, maxWidth = 'max-
     return () => window.removeEventListener('keydown', handler);
   }, [open, onClose]);
 
-  return (
+  // Render into document.body so this AnimatePresence is completely outside the
+  // page-level AnimatePresence in AppShell. Without this, the modal's exit
+  // animation races with the page exit animation and can leave the incoming
+  // page frozen at opacity:0 (its initial value).
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
@@ -48,6 +53,7 @@ export default function Modal({ open, onClose, title, children, maxWidth = 'max-
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
