@@ -89,6 +89,12 @@ export function useOutflowStore() {
     refresh();
   }, [refresh]);
 
+  const batchAddEntries = useCallback((items) => {
+    const result = Store.batchAddEntries(items);
+    refresh();
+    return result;
+  }, [refresh]);
+
   const deleteEntry = useCallback((type, id) => {
     Store.deleteEntry(type, id);
     refresh();
@@ -148,6 +154,7 @@ export function useOutflowStore() {
     totals,
     syncStatus,
     addEntry,
+    batchAddEntries,
     deleteEntry,
     addBill,
     updateBill,

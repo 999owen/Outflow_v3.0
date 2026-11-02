@@ -6,6 +6,7 @@ import EntriesView      from '../entries/EntriesView.jsx';
 import BillsView        from '../bills/BillsView.jsx';
 import GroceriesView    from '../groceries/GroceriesView.jsx';
 import ProjectionsView  from '../projections/ProjectionsView.jsx';
+import ImportsView      from '../imports/ImportsView.jsx';
 import SettingsView     from '../settings/SettingsView.jsx';
 import { VIEWS } from '../../constants/views.js';
 
@@ -25,6 +26,7 @@ function PageContent({ activeView }) {
     case VIEWS.BILLS:        return <BillsView />;
     case VIEWS.GROCERIES:    return <GroceriesView />;
     case VIEWS.PROJECTIONS:  return <ProjectionsView />;
+    case VIEWS.IMPORTS:      return <ImportsView />;
     case VIEWS.SETTINGS:     return <SettingsView />;
     default:                 return <DashboardView />;
   }

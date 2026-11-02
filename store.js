@@ -271,6 +271,44 @@
         return save(db);
     }
 
+    function batchAddEntries(items) {
+        if (!Array.isArray(items) || items.length === 0) {
+            return { count: 0, db: load() };
+        }
+        const db = load();
+        let addedCount = 0;
+
+        items.forEach((item) => {
+            const type = item.targetType;
+            if (TYPES.indexOf(type) === -1) return;
+            const amount = parseFloat(item.amount);
+            if (!isValidDate(item.date) || !isFinite(amount) || amount <= 0) return;
+
+            let category = item.category ? String(item.category) : '';
+            if (type === 'grocery') {
+                category = 'Groceries';
+            } else if (type === 'spend') {
+                if (['Cost', 'Personal Spend', 'Groceries'].indexOf(category) === -1) {
+                    category = 'Personal Spend';
+                }
+            } else if (type === 'income') {
+                if (!category) category = 'Income';
+            }
+
+            db[type + '_entries'].push({
+                id: newId(),
+                date: String(item.date),
+                amount: Math.round(amount * 100) / 100,
+                notes: item.notes ? String(item.notes) : '',
+                category: category,
+            });
+            addedCount++;
+        });
+
+        save(db);
+        return { count: addedCount, db: db };
+    }
+
     // Delete by id so duplicate date/amount/notes rows stay distinguishable.
     function deleteEntry(type, id) {
         assertType(type);
@@ -754,6 +792,7 @@
         load: load,
         save: save,
         addEntry: addEntry,
+        batchAddEntries: batchAddEntries,
         deleteEntry: deleteEntry,
         updateSetting: updateSetting,
         subscribe: subscribe,

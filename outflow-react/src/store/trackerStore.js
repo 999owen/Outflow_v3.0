@@ -262,6 +262,44 @@ export function addEntry(type, entry) {
   return save(db);
 }
 
+export function batchAddEntries(items) {
+  if (!Array.isArray(items) || items.length === 0) {
+    return { count: 0, db: load() };
+  }
+  const db = load();
+  let addedCount = 0;
+
+  items.forEach((item) => {
+    const type = item.targetType;
+    if (!TYPES.includes(type)) return;
+    const amount = parseFloat(item.amount);
+    if (!isValidDate(item.date) || !isFinite(amount) || amount <= 0) return;
+
+    let category = item.category ? String(item.category) : '';
+    if (type === 'grocery') {
+      category = 'Groceries';
+    } else if (type === 'spend') {
+      if (!['Cost', 'Personal Spend', 'Groceries'].includes(category)) {
+        category = 'Personal Spend';
+      }
+    } else if (type === 'income') {
+      if (!category) category = 'Income';
+    }
+
+    db[type + '_entries'].push({
+      id: newId(),
+      date: String(item.date),
+      amount: Math.round(amount * 100) / 100,
+      notes: item.notes ? String(item.notes) : '',
+      category,
+    });
+    addedCount++;
+  });
+
+  save(db);
+  return { count: addedCount, db };
+}
+
 export function deleteEntry(type, id) {
   if (!TYPES.includes(type)) throw new Error('Unknown entry type: ' + type);
   const db = load();

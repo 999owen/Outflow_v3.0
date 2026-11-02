@@ -4,5 +4,6 @@ export const VIEWS = {
   BILLS: 'bills',
   GROCERIES: 'groceries',
   PROJECTIONS: 'projections',
+  IMPORTS: 'imports',
   SETTINGS: 'settings',
 };

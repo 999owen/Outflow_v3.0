@@ -5,6 +5,7 @@ import {
   FileText,
   ShoppingCart,
   TrendingUp,
+  FileSpreadsheet,
   Settings,
   Wifi,
   WifiOff,
@@ -20,6 +21,7 @@ const NAV_ITEMS = [
   { id: VIEWS.BILLS,       label: 'Bills',       icon: FileText },
   { id: VIEWS.GROCERIES,   label: 'Groceries',   icon: ShoppingCart },
   { id: VIEWS.PROJECTIONS, label: 'Projections', icon: TrendingUp },
+  { id: VIEWS.IMPORTS,     label: 'Import Data', icon: FileSpreadsheet },
 ];
 
 export default function Sidebar({ activeView, onNavigate }) {
