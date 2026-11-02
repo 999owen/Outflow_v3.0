@@ -3,5 +3,6 @@ export const VIEWS = {
   ENTRIES: 'entries',
   BILLS: 'bills',
   GROCERIES: 'groceries',
+  PROJECTIONS: 'projections',
   SETTINGS: 'settings',
 };

@@ -13,6 +13,10 @@ export const DEFAULT_SETTINGS = {
   github_token: '',
   gist_id: '',
   user_name: '',
+  savings_goal_name: 'Emergency Fund',
+  savings_goal_target: 1000,
+  savings_goal_current: 0,
+  savings_goal_date: '',
 };
 
 export function emptyData() {
@@ -93,6 +97,10 @@ export function normalizeSettings(raw) {
     github_token: s.github_token ? String(s.github_token) : '',
     gist_id: s.gist_id ? String(s.gist_id) : '',
     user_name: s.user_name ? String(s.user_name).trim() : '',
+    savings_goal_name: s.savings_goal_name ? String(s.savings_goal_name).trim() : DEFAULT_SETTINGS.savings_goal_name,
+    savings_goal_target: clampNumber(s.savings_goal_target, DEFAULT_SETTINGS.savings_goal_target, 0, 1e12),
+    savings_goal_current: clampNumber(s.savings_goal_current, DEFAULT_SETTINGS.savings_goal_current, 0, 1e12),
+    savings_goal_date: isValidDate(s.savings_goal_date) ? String(s.savings_goal_date) : '',
   };
 }
 
@@ -269,7 +277,11 @@ export function deleteEntry(type, id) {
 export function updateSetting(key, value) {
   const db = load();
   const next = { ...db.settings };
-  next[key] = value;
+  if (key && typeof key === 'object') {
+    Object.assign(next, key);
+  } else {
+    next[key] = value;
+  }
   db.settings = normalizeSettings(next);
   const isSyncSetting = key === 'github_token' || key === 'gist_id';
   return save(db, isSyncSetting);
@@ -487,9 +499,22 @@ export function importFromJSON(text, currentDb) {
 
   const token = currentDb.settings.github_token;
   const gistId = currentDb.settings.gist_id;
+  const existingGoalName = currentDb.settings.savings_goal_name;
+  const existingGoalTarget = currentDb.settings.savings_goal_target;
+  const existingGoalCurrent = currentDb.settings.savings_goal_current;
+  const existingGoalDate = currentDb.settings.savings_goal_date;
+  const existingUserName = currentDb.settings.user_name;
+
   currentDb.settings = result.db.settings;
   if (token && !currentDb.settings.github_token) currentDb.settings.github_token = token;
   if (gistId && !currentDb.settings.gist_id) currentDb.settings.gist_id = gistId;
+  if (existingUserName && !parsed?.settings?.user_name) currentDb.settings.user_name = existingUserName;
+  if (parsed?.settings?.savings_goal_target === undefined && existingGoalTarget !== undefined) {
+    currentDb.settings.savings_goal_target = existingGoalTarget;
+    currentDb.settings.savings_goal_current = existingGoalCurrent;
+    currentDb.settings.savings_goal_name = existingGoalName;
+    currentDb.settings.savings_goal_date = existingGoalDate;
+  }
 
   if (importedCount === 0 && result.skipped > 0) {
     throw new Error('Every entry in that file was invalid or already exists.');
@@ -667,6 +692,142 @@ export function getInitials(name) {
   const first = parts[0].replace(/[^a-zA-Z0-9]/g, '')[0] || parts[0][0];
   const last = parts[parts.length - 1].replace(/[^a-zA-Z0-9]/g, '')[0] || parts[parts.length - 1][0];
   return (first + last).toUpperCase();
+}
+
+export function getFinancialProjections(db) {
+  const now = new Date();
+  const currentMonthStr =
+    now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+
+  // 1. Recurring bills committed monthly
+  const activeBills = (Array.isArray(db?.recurring_bills) ? db.recurring_bills : []).filter(
+    (b) => !!b?.isActive
+  );
+  const monthlyBills = activeBills.reduce((acc, b) => {
+    const cost =
+      b?.type === 'variable' &&
+      b?.actualAmount !== null &&
+      b?.actualAmount !== undefined &&
+      b?.lastUpdatedMonth === currentMonthStr
+        ? Number(b.actualAmount) || 0
+        : Number(b?.amount) || 0;
+    return acc + cost;
+  }, 0);
+
+  // 2. Income analysis
+  const incomeEntries = Array.isArray(db?.income_entries) ? db.income_entries : [];
+  const incomeByMonth = {};
+  incomeEntries.forEach((e) => {
+    if (!e?.date || !isFinite(Number(e?.amount))) return;
+    const m = String(e.date).slice(0, 7);
+    incomeByMonth[m] = (incomeByMonth[m] || 0) + Number(e.amount);
+  });
+  const incomeMonths = Object.keys(incomeByMonth);
+  const totalIncomeAllTime = incomeEntries.reduce((acc, e) => acc + (Number(e?.amount) || 0), 0);
+  const avgMonthlyIncome =
+    incomeMonths.length > 0 ? totalIncomeAllTime / incomeMonths.length : totalIncomeAllTime;
+
+  // 3. Expenses analysis (Spend + Groceries)
+  const allExpenses = getAllExpenses(db);
+  const expensesByMonth = {};
+  allExpenses.forEach((e) => {
+    if (!e?.date || !isFinite(Number(e?.amount))) return;
+    const m = String(e.date).slice(0, 7);
+    expensesByMonth[m] = (expensesByMonth[m] || 0) + Number(e.amount);
+  });
+  const expenseMonths = Object.keys(expensesByMonth);
+  const totalExpensesAllTime = allExpenses.reduce((acc, e) => acc + (Number(e?.amount) || 0), 0);
+  const avgMonthlyVariableExpenses =
+    expenseMonths.length > 0 ? totalExpensesAllTime / expenseMonths.length : 0;
+
+  // 4. Budgeted / Planned figures
+  const spendingPercentage = Number(db?.settings?.spending_percentage) || 35;
+  const plannedMonthlyAllowance = avgMonthlyIncome * (spendingPercentage / 100);
+  const plannedMonthlyGroceries = Number(db?.settings?.monthly_grocery_limit) || 280;
+  const plannedMonthlyOutflows = plannedMonthlyAllowance + plannedMonthlyGroceries + monthlyBills;
+  const plannedMonthlySavings = Math.max(0, avgMonthlyIncome - plannedMonthlyOutflows);
+
+  // 5. Actual average monthly outflows & savings pace
+  const actualMonthlyOutflows = avgMonthlyVariableExpenses + monthlyBills;
+  const actualMonthlySavings =
+    expenseMonths.length > 0
+      ? avgMonthlyIncome - actualMonthlyOutflows
+      : plannedMonthlySavings;
+
+  const effectiveMonthlySavings =
+    actualMonthlySavings > 0 ? actualMonthlySavings : plannedMonthlySavings;
+
+  const savingsRatePct =
+    avgMonthlyIncome > 0 ? Math.max(0, (effectiveMonthlySavings / avgMonthlyIncome) * 100) : 0;
+
+  // 6. Savings Goal Metrics
+  const goalName = db?.settings?.savings_goal_name || 'Emergency Fund';
+  const goalTarget = Number(db?.settings?.savings_goal_target) || 0;
+  const goalCurrent = Number(db?.settings?.savings_goal_current) || 0;
+  const goalDateStr = db?.settings?.savings_goal_date || '';
+  const goalRemaining = Math.max(0, goalTarget - goalCurrent);
+  const goalProgressPct = goalTarget > 0 ? Math.min(100, Math.max(0, (goalCurrent / goalTarget) * 100)) : 0;
+
+  let monthsToGoal = null;
+  let estimatedCompletionDate = null;
+  if (goalRemaining <= 0) {
+    monthsToGoal = 0;
+    estimatedCompletionDate = now;
+  } else if (effectiveMonthlySavings > 0) {
+    monthsToGoal = goalRemaining / effectiveMonthlySavings;
+    const estDate = new Date(now);
+    estDate.setMonth(estDate.getMonth() + Math.ceil(monthsToGoal));
+    estimatedCompletionDate = estDate;
+  }
+
+  let targetDateStatus = null; // 'achieved' | 'ahead' | 'behind' | 'deficit' | null
+  let requiredMonthlySavings = null;
+  let monthsUntilTargetDate = null;
+  if (goalDateStr && goalTarget > 0) {
+    const targetDateObj = parseDate(goalDateStr);
+    if (targetDateObj) {
+      const diffMs = targetDateObj.getTime() - now.getTime();
+      const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+      monthsUntilTargetDate = Math.max(0.1, diffDays / 30.4375);
+      requiredMonthlySavings = goalRemaining / monthsUntilTargetDate;
+
+      if (goalRemaining <= 0) {
+        targetDateStatus = 'achieved';
+      } else if (effectiveMonthlySavings >= requiredMonthlySavings) {
+        targetDateStatus = 'ahead';
+      } else if (effectiveMonthlySavings > 0) {
+        targetDateStatus = 'behind';
+      } else {
+        targetDateStatus = 'deficit';
+      }
+    }
+  }
+
+  return {
+    avgMonthlyIncome,
+    monthlyBills,
+    plannedMonthlyAllowance,
+    plannedMonthlyGroceries,
+    plannedMonthlyOutflows,
+    plannedMonthlySavings,
+    actualMonthlyOutflows,
+    actualMonthlySavings,
+    effectiveMonthlySavings,
+    savingsRatePct,
+    goal: {
+      name: goalName,
+      target: goalTarget,
+      current: goalCurrent,
+      date: goalDateStr,
+      remaining: goalRemaining,
+      progressPct: goalProgressPct,
+      monthsToGoal,
+      estimatedCompletionDate,
+      targetDateStatus,
+      requiredMonthlySavings,
+      monthsUntilTargetDate,
+    },
+  };
 }
 
 export async function fetchGitHubUser(token) {

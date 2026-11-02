@@ -4,6 +4,7 @@ import {
   List,
   FileText,
   ShoppingCart,
+  TrendingUp,
   Settings,
   Wifi,
   WifiOff,
@@ -14,10 +15,11 @@ import { VIEWS } from '../../constants/views.js';
 import { getInitials } from '../../store/trackerStore.js';
 
 const NAV_ITEMS = [
-  { id: VIEWS.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard },
-  { id: VIEWS.ENTRIES,   label: 'Entries',   icon: List },
-  { id: VIEWS.BILLS,     label: 'Bills',     icon: FileText },
-  { id: VIEWS.GROCERIES, label: 'Groceries', icon: ShoppingCart },
+  { id: VIEWS.DASHBOARD,   label: 'Dashboard',   icon: LayoutDashboard },
+  { id: VIEWS.ENTRIES,     label: 'Entries',     icon: List },
+  { id: VIEWS.BILLS,       label: 'Bills',       icon: FileText },
+  { id: VIEWS.GROCERIES,   label: 'Groceries',   icon: ShoppingCart },
+  { id: VIEWS.PROJECTIONS, label: 'Projections', icon: TrendingUp },
 ];
 
 export default function Sidebar({ activeView, onNavigate }) {

@@ -1,11 +1,12 @@
 import { motion } from 'framer-motion';
 import Sidebar from './Sidebar.jsx';
 import ErrorBoundary from '../ui/ErrorBoundary.jsx';
-import DashboardView  from '../dashboard/DashboardView.jsx';
-import EntriesView    from '../entries/EntriesView.jsx';
-import BillsView      from '../bills/BillsView.jsx';
-import GroceriesView  from '../groceries/GroceriesView.jsx';
-import SettingsView   from '../settings/SettingsView.jsx';
+import DashboardView    from '../dashboard/DashboardView.jsx';
+import EntriesView      from '../entries/EntriesView.jsx';
+import BillsView        from '../bills/BillsView.jsx';
+import GroceriesView    from '../groceries/GroceriesView.jsx';
+import ProjectionsView  from '../projections/ProjectionsView.jsx';
+import SettingsView     from '../settings/SettingsView.jsx';
 import { VIEWS } from '../../constants/views.js';
 
 // No AnimatePresence — its "wait" / "sync" modes require coordinating the
@@ -19,12 +20,13 @@ import { VIEWS } from '../../constants/views.js';
 
 function PageContent({ activeView }) {
   switch (activeView) {
-    case VIEWS.DASHBOARD:  return <DashboardView />;
-    case VIEWS.ENTRIES:    return <EntriesView />;
-    case VIEWS.BILLS:      return <BillsView />;
-    case VIEWS.GROCERIES:  return <GroceriesView />;
-    case VIEWS.SETTINGS:   return <SettingsView />;
-    default:               return <DashboardView />;
+    case VIEWS.DASHBOARD:    return <DashboardView />;
+    case VIEWS.ENTRIES:      return <EntriesView />;
+    case VIEWS.BILLS:        return <BillsView />;
+    case VIEWS.GROCERIES:    return <GroceriesView />;
+    case VIEWS.PROJECTIONS:  return <ProjectionsView />;
+    case VIEWS.SETTINGS:     return <SettingsView />;
+    default:                 return <DashboardView />;
   }
 }
 
