@@ -92,17 +92,19 @@ export function normalizeDate(dateStr) {
 /**
  * Clean transaction notes for clearer UI display
  */
-export function cleanDescription(rawDesc) {
-  if (!rawDesc) return 'Transaction';
+export function cleanDescription(rawDesc, fallback = 'Transaction') {
+  if (!rawDesc || !String(rawDesc).trim()) return fallback;
   let cleaned = String(rawDesc).trim();
   // Strip common bank prefixes if desired, but keep readable
   cleaned = cleaned.replace(/^(Debit|Digital)\s+Card\s+Purchase\s*-\s*/i, '');
   cleaned = cleaned.replace(/\s+/g, ' ').trim();
-  return cleaned || rawDesc;
+  return cleaned || fallback;
 }
 
 /**
  * Detect column indices from headers
+ * Supports both single-column amount formats (Capital One, Amex, Apple Card)
+ * and split debit/credit column formats (Discover, Chase, Citi, etc.)
  */
 export function detectColumns(headerRow) {
   const headers = headerRow.map((h) => h.toLowerCase().trim());
@@ -110,59 +112,146 @@ export function detectColumns(headerRow) {
     account: -1,
     description: -1,
     date: -1,
+    postedDate: -1,
     type: -1,
     amount: -1,
+    debit: -1,
+    credit: -1,
+    category: -1,
     balance: -1,
   };
 
   headers.forEach((h, idx) => {
-    if (h.includes('account')) map.account = idx;
-    else if (h.includes('date')) map.date = idx;
-    else if (h.includes('desc') || h.includes('memo') || h.includes('payee') || h.includes('merchant')) map.description = idx;
-    else if (h.includes('type')) map.type = idx;
-    else if (h.includes('amount')) map.amount = idx;
-    else if (h.includes('balance')) map.balance = idx;
+    // 1. Transaction Date / Date (prioritize transaction date over posted date)
+    if (h === 'transaction date' || h === 'trans date' || h === 'date' || h === 'trans_date') {
+      map.date = idx;
+    } else if (h.includes('post date') || h.includes('posted date') || h.includes('posting date') || h === 'posted') {
+      map.postedDate = idx;
+    } else if (map.date === -1 && h.includes('date')) {
+      map.date = idx;
+    }
+
+    // 2. Account / Card No
+    if (h.includes('account') || h.includes('card no') || h.includes('card #') || h.includes('card number')) {
+      map.account = idx;
+    }
+
+    // 3. Description / Payee / Merchant
+    if (
+      h.includes('desc') ||
+      h.includes('memo') ||
+      h.includes('payee') ||
+      h.includes('merchant') ||
+      h.includes('name') ||
+      h === 'details'
+    ) {
+      map.description = idx;
+    }
+
+    // 4. Bank-provided Category
+    if (h === 'category' || h.includes('category')) {
+      map.category = idx;
+    }
+
+    // 5. Transaction Type (Credit vs Debit column)
+    if (h === 'transaction type' || h === 'type' || h === 'trans type') {
+      map.type = idx;
+    }
+
+    // 6. Split Debit Column (Discover, Chase, Citi, Wells Fargo)
+    if (h === 'debit' || h === 'debit amount' || h.includes('withdrawal') || h.includes('outflow') || h === 'debits') {
+      map.debit = idx;
+    }
+
+    // 7. Split Credit Column (Discover, Chase, Citi, Wells Fargo)
+    if (h === 'credit' || h === 'credit amount' || h.includes('deposit') || h.includes('inflow') || h === 'credits') {
+      map.credit = idx;
+    }
+
+    // 8. Single Amount Column
+    if (h === 'amount' || h === 'transaction amount' || h === 'trans amount' || h.includes('total amount')) {
+      map.amount = idx;
+    } else if (h.includes('amount') && map.debit === -1 && map.credit === -1) {
+      map.amount = idx;
+    }
+
+    // 9. Balance
+    if (h.includes('balance')) {
+      map.balance = idx;
+    }
   });
+
+  // If no transaction date found, fallback to posted date
+  if (map.date === -1 && map.postedDate > -1) {
+    map.date = map.postedDate;
+  }
 
   return map;
 }
 
 /**
- * Smart categorizer for transactions
+ * Smart categorizer for transactions, taking into account merchant text,
+ * debit/credit type, and bank-provided category if available.
  */
-export function suggestClassification(rawDesc, txType, amount) {
+export function suggestClassification(rawDesc, txType, amount, bankCategory = '') {
   const desc = (rawDesc || '').toUpperCase();
+  const bCat = (bankCategory || '').toUpperCase();
   const isCredit = (txType || '').toUpperCase() === 'CREDIT' || amount < 0;
 
   if (isCredit) {
-    if (desc.includes('ADJUSTMENT') || desc.includes('REFUND') || desc.includes('RETURN') || desc.includes('REVERSAL')) {
+    // If it's a credit card bill autopay / payment made to the card,
+    // this represents a balance transfer/payment from checking rather than income.
+    if (
+      bCat.includes('PAYMENT') ||
+      desc.includes('AUTOPAY') ||
+      desc.includes('PAYMENT') ||
+      desc.includes('PYMT') ||
+      desc.includes('THANK YOU')
+    ) {
+      return {
+        target: 'skip',
+        category: 'Credit Card Payment',
+        notes: cleanDescription(rawDesc, bankCategory || 'Card Payment'),
+        reason: 'Credit card payment / transfer',
+      };
+    }
+
+    if (
+      desc.includes('ADJUSTMENT') ||
+      desc.includes('REFUND') ||
+      desc.includes('RETURN') ||
+      desc.includes('REVERSAL') ||
+      bCat.includes('MERCHANDISE') ||
+      bCat.includes('DINING') ||
+      bCat.includes('RETAIL')
+    ) {
       return {
         target: 'income',
         category: 'Refund',
-        notes: `Refund: ${cleanDescription(rawDesc)}`,
-        reason: 'Refund or Adjustment credit',
+        notes: `Refund: ${cleanDescription(rawDesc, bankCategory || 'Refund')}`,
+        reason: 'Refund or merchant adjustment credit',
       };
     }
     return {
       target: 'income',
       category: 'Income',
-      notes: cleanDescription(rawDesc),
-      reason: 'Deposit or Account credit',
+      notes: cleanDescription(rawDesc, bankCategory || 'Deposit'),
+      reason: 'Deposit or account credit',
     };
   }
 
   // Check for Groceries
   const groceryKeywords = [
-    'WALMART', 'SUPERCENTER', 'GROCERY', 'ALDI', 'KROGER', 'MEIJER',
+    'WALMART', 'WAL-MART', 'SUPERCENTER', 'GROCERY', 'ALDI', 'KROGER', 'MEIJER',
     'WHOLE FOODS', 'TRADER JOE', 'SAFEWAY', 'FOOD LION', 'PUBLIX',
     'WEGMANS', 'COSTCO', 'HEB', 'PIGGLY', 'SPROUTS', 'MARKET',
   ];
-  if (groceryKeywords.some((kw) => desc.includes(kw))) {
+  if (groceryKeywords.some((kw) => desc.includes(kw)) || bCat.includes('GROCER')) {
     return {
       target: 'grocery',
       category: 'Groceries',
-      notes: cleanDescription(rawDesc),
-      reason: 'Matched grocery merchant',
+      notes: cleanDescription(rawDesc, bankCategory || 'Groceries'),
+      reason: 'Matched grocery merchant or category',
     };
   }
 
@@ -171,14 +260,23 @@ export function suggestClassification(rawDesc, txType, amount) {
     'RENT', 'MORTGAGE', 'ELECTRIC', 'WATER', 'ENERGY', 'GAS UTILITY',
     'INTERNET', 'BROADBAND', 'COMCAST', 'VERIZON', 'AT&T', 'INSURANCE',
     'GEICO', 'PROGRESSIVE', 'STATE FARM', 'LOAN', 'TUITION', 'STUDENT',
-    'RH BROKERAGE', 'SUBSCRIPTION', 'HOSPITAL', 'CLINIC', 'PHARMACY', 'CVS', 'WALGREENS'
+    'RH BROKERAGE', 'SUBSCRIPTION', 'HOSPITAL', 'CLINIC', 'PHARMACY', 'CVS', 'WALGREENS',
+    'SQSP*', 'DOMAIN', 'TRANSPORTATION'
   ];
-  if (costKeywords.some((kw) => desc.includes(kw))) {
+  if (
+    costKeywords.some((kw) => desc.includes(kw)) ||
+    bCat.includes('INTERNET') ||
+    bCat.includes('UTILITIES') ||
+    bCat.includes('MEDICAL') ||
+    bCat.includes('HEALTH') ||
+    bCat.includes('INSURANCE') ||
+    bCat.includes('GAS/AUTOMOTIVE')
+  ) {
     return {
       target: 'spend',
       category: 'Cost',
-      notes: cleanDescription(rawDesc),
-      reason: 'Matched recurring / essential bill keyword',
+      notes: cleanDescription(rawDesc, bankCategory || 'Cost'),
+      reason: 'Matched recurring bill / essential cost keyword or category',
     };
   }
 
@@ -186,7 +284,7 @@ export function suggestClassification(rawDesc, txType, amount) {
   return {
     target: 'spend',
     category: 'Personal Spend',
-    notes: cleanDescription(rawDesc),
+    notes: cleanDescription(rawDesc, bankCategory || 'Purchase'),
     reason: 'Discretionary / personal purchase',
   };
 }
@@ -244,8 +342,11 @@ export function processStatementCSV(csvText, db) {
   const header = rawRows[0];
   const colMap = detectColumns(header);
 
-  if (colMap.date === -1 || colMap.amount === -1) {
-    throw new Error('Could not identify "Date" and "Amount" columns in the CSV file.');
+  const hasAmount = colMap.amount > -1;
+  const hasSplitAmount = colMap.debit > -1 || colMap.credit > -1;
+
+  if (colMap.date === -1 || (!hasAmount && !hasSplitAmount)) {
+    throw new Error('Could not identify "Date" and "Amount" (or "Debit"/"Credit") columns in the CSV file.');
   }
 
   const transactions = [];
@@ -258,21 +359,60 @@ export function processStatementCSV(csvText, db) {
     const rawDate = colMap.date > -1 ? row[colMap.date] : '';
     const date = normalizeDate(rawDate);
     const rawDesc = colMap.description > -1 ? row[colMap.description] : '';
-    const rawType = colMap.type > -1 ? row[colMap.type] : '';
-    const rawAmt = colMap.amount > -1 ? row[colMap.amount] : '';
+    const bankCategory = colMap.category > -1 ? row[colMap.category] : '';
 
-    const parsedAmt = Math.abs(parseFloat(String(rawAmt).replace(/[$,]/g, '')));
+    let parsedAmt = 0;
+    let isCredit = false;
+    let rawType = colMap.type > -1 ? row[colMap.type] : '';
+
+    if (hasSplitAmount) {
+      const rawDebit = colMap.debit > -1 ? row[colMap.debit] : '';
+      const rawCredit = colMap.credit > -1 ? row[colMap.credit] : '';
+      const debitVal = parseFloat(String(rawDebit).replace(/[$,]/g, ''));
+      const creditVal = parseFloat(String(rawCredit).replace(/[$,]/g, ''));
+
+      if (!isNaN(debitVal) && debitVal > 0) {
+        parsedAmt = debitVal;
+        isCredit = false;
+        rawType = 'Debit';
+      } else if (!isNaN(creditVal) && creditVal > 0) {
+        parsedAmt = creditVal;
+        isCredit = true;
+        rawType = 'Credit';
+      } else {
+        continue;
+      }
+    } else {
+      const rawAmt = row[colMap.amount];
+      const cleanAmtStr = String(rawAmt).replace(/[$,]/g, '');
+      const numVal = parseFloat(cleanAmtStr);
+      if (isNaN(numVal) || numVal === 0) continue;
+
+      parsedAmt = Math.abs(numVal);
+      const typeStr = (rawType || '').toLowerCase();
+      if (typeStr.includes('credit') || typeStr.includes('deposit') || typeStr.includes('inflow')) {
+        isCredit = true;
+      } else if (typeStr.includes('debit') || typeStr.includes('payment') || typeStr.includes('withdrawal')) {
+        isCredit = false;
+      } else {
+        isCredit = numVal > 0;
+      }
+      if (!rawType) {
+        rawType = isCredit ? 'Credit' : 'Debit';
+      }
+    }
+
     if (!date || isNaN(parsedAmt) || parsedAmt === 0) {
       continue;
     }
 
-    const isCredit = (rawType || '').toLowerCase() === 'credit' || parseFloat(String(rawAmt).replace(/[$,]/g, '')) < 0;
-    const initialSuggestion = suggestClassification(rawDesc, rawType, parsedAmt);
+    const initialSuggestion = suggestClassification(rawDesc, rawType, parsedAmt, bankCategory);
 
     const txItem = {
       id: `csv-${rowIndex}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
       rawIndex: rowIndex,
-      rawDescription: rawDesc,
+      rawDescription: rawDesc || bankCategory || 'Card Purchase',
+      bankCategory: bankCategory || null,
       rawType: rawType || (isCredit ? 'Credit' : 'Debit'),
       rawAmount: parsedAmt,
       date,

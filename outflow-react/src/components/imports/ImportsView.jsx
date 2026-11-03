@@ -414,9 +414,9 @@ export default function ImportsView() {
                   Drop your bank statement (.csv) here
                 </h3>
                 <p className="text-xs text-text-muted mt-1.5 max-w-md">
-                  Supports Capital One checking & debit statements, as well as CSV exports from major banks.
-                  We&apos;ll guide you through classifying expenses, handling deposits vs refunds, and reviewing
-                  duplicates.
+                  Supports Discover Card, Capital One, Chase, and major bank statements (both single-amount and
+                  split debit/credit formats). We&apos;ll guide you through classifying expenses, handling deposits
+                  vs refunds, and reviewing duplicates.
                 </p>
 
                 <div className="mt-5 flex items-center gap-2">
@@ -691,8 +691,13 @@ export default function ImportsView() {
                                   className="w-full bg-transparent border border-transparent hover:border-white/[0.1] rounded px-1.5 py-0.5 font-medium text-text-main focus:bg-bg-outer focus:border-accent-blue focus:outline-none truncate"
                                   title={tx.rawDescription}
                                 />
-                                <div className="text-[10px] text-text-muted truncate px-1.5 mt-0.5" title={tx.rawDescription}>
-                                  {tx.rawDescription}
+                                <div className="text-[10px] text-text-muted truncate px-1.5 mt-0.5 flex items-center gap-1.5" title={tx.rawDescription}>
+                                  <span className="truncate">{tx.rawDescription}</span>
+                                  {tx.bankCategory && (
+                                    <span className="px-1.5 py-0.5 rounded bg-white/[0.05] text-[9px] text-text-muted shrink-0 border border-white/[0.05]">
+                                      {tx.bankCategory}
+                                    </span>
+                                  )}
                                 </div>
                               </td>
 

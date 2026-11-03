@@ -2,7 +2,7 @@
   "name": "outflow-react",
   "version": "4.0.0",
   "private": true,
-  "homepage": "https://999owen.github.io/Outflow_v3.0",
+  "homepage": "https://outflowfinancial.com",
   "type": "module",
   "scripts": {
     "dev": "vite",
