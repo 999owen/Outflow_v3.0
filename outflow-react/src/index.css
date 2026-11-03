@@ -11,6 +11,7 @@
     height: 100%;
     margin: 0;
     padding: 0;
+    color-scheme: dark;
   }
 
   body {
@@ -20,6 +21,23 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow: hidden;
+    color-scheme: dark;
+  }
+
+  /* Form dropdown styling for dark theme consistency */
+  select {
+    color-scheme: dark;
+  }
+
+  select option,
+  select optgroup {
+    background-color: #182234;
+    color: #f9fafb;
+  }
+
+  select optgroup {
+    color: #9ca3af;
+    font-weight: 600;
   }
 
   ::-webkit-scrollbar {

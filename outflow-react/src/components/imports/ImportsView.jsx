@@ -503,11 +503,11 @@ export default function ImportsView() {
                     <select
                       value={creditPreset}
                       onChange={(e) => applyCreditPreset(e.target.value)}
-                      className="w-full bg-bg-outer border border-white/[0.1] rounded-md px-2.5 py-1.5 text-xs text-text-main focus:outline-none focus:border-accent-blue"
+                      className="w-full bg-[#182234] border border-white/[0.12] rounded-md px-2.5 py-1.5 text-xs text-text-main focus:outline-none focus:border-accent-blue cursor-pointer"
                     >
-                      <option value="smart">Smart: Detect Deposits vs Refunds</option>
-                      <option value="all-income">Mark All Credits as Income</option>
-                      <option value="skip-transfers">Skip Internal Savings Transfers</option>
+                      <option value="smart" className="bg-[#182234] text-text-main">Smart: Detect Deposits vs Refunds</option>
+                      <option value="all-income" className="bg-[#182234] text-text-main">Mark All Credits as Income</option>
+                      <option value="skip-transfers" className="bg-[#182234] text-text-main">Skip Internal Savings Transfers</option>
                     </select>
                   </div>
 
@@ -527,11 +527,11 @@ export default function ImportsView() {
                     <select
                       value={debitPreset}
                       onChange={(e) => applyDebitPreset(e.target.value)}
-                      className="w-full bg-bg-outer border border-white/[0.1] rounded-md px-2.5 py-1.5 text-xs text-text-main focus:outline-none focus:border-accent-blue"
+                      className="w-full bg-[#182234] border border-white/[0.12] rounded-md px-2.5 py-1.5 text-xs text-text-main focus:outline-none focus:border-accent-blue cursor-pointer"
                     >
-                      <option value="smart">Smart Categorization (Groceries / Cost / Spend)</option>
-                      <option value="personal">Default all to Personal Spend</option>
-                      <option value="cost">Default all to Fixed Cost</option>
+                      <option value="smart" className="bg-[#182234] text-text-main">Smart Categorization (Groceries / Cost / Spend)</option>
+                      <option value="personal" className="bg-[#182234] text-text-main">Default all to Personal Spend</option>
+                      <option value="cost" className="bg-[#182234] text-text-main">Default all to Fixed Cost</option>
                     </select>
                   </div>
 
@@ -736,19 +736,19 @@ export default function ImportsView() {
                                       );
                                     }
                                   }}
-                                  className="bg-white/[0.04] border border-white/[0.08] rounded-md px-2 py-1 text-xs text-text-main focus:outline-none focus:border-accent-blue"
+                                  className="bg-[#182234] border border-white/[0.12] rounded-md px-2.5 py-1 text-xs text-text-main focus:outline-none focus:border-accent-blue cursor-pointer"
                                 >
-                                  <optgroup label="Spending & Expenses">
-                                    <option value="spend:Personal Spend">Personal Spend</option>
-                                    <option value="spend:Cost">Cost (Fixed / Essential)</option>
-                                    <option value="grocery">Groceries</option>
+                                  <optgroup label="Spending & Expenses" className="bg-[#182234] text-text-muted font-semibold">
+                                    <option value="spend:Personal Spend" className="bg-[#182234] text-text-main">Personal Spend</option>
+                                    <option value="spend:Cost" className="bg-[#182234] text-text-main">Cost (Fixed / Essential)</option>
+                                    <option value="grocery" className="bg-[#182234] text-text-main">Groceries</option>
                                   </optgroup>
-                                  <optgroup label="Income & Inflows">
-                                    <option value="income:Income">Income (Deposit)</option>
-                                    <option value="income:Refund">Refund / Offset</option>
+                                  <optgroup label="Income & Inflows" className="bg-[#182234] text-text-muted font-semibold">
+                                    <option value="income:Income" className="bg-[#182234] text-text-main">Income (Deposit)</option>
+                                    <option value="income:Refund" className="bg-[#182234] text-text-main">Refund / Offset</option>
                                   </optgroup>
-                                  <optgroup label="Actions">
-                                    <option value="skip">Skip / Do Not Import</option>
+                                  <optgroup label="Actions" className="bg-[#182234] text-text-muted font-semibold">
+                                    <option value="skip" className="bg-[#182234] text-amber-300">Skip / Do Not Import</option>
                                   </optgroup>
                                 </select>
                               </td>
